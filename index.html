@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Modern Cyber Racing</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0a0a16;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #gameCanvas {
+            background: linear-gradient(to bottom, #111c3a 0%, #060b19 100%);
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.3);
+            border-radius: 12px;
+            max-width: 100%;
+            max-height: 100%;
+        }
+        #ui-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            text-shadow: 0 0 10px #00e5ff;
+            font-size: 20px;
+            pointer-events: none;
+        }
+        .hud-val {
+            font-weight: bold;
+            color: #00e5ff;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-panel">
+        <div>SPEED: <span id="speed-dis" class="hud-val">0</span> KM/H</div>
+        <div>SCORE: <span id="score-dis" class="hud-val">0</span></div>
+    </div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const speedDis = document.getElementById('speed-dis');
+const scoreDis = document.getElementById('score-dis');
+
+// 游戏配置
+const config = {
+    fps: 60,
+    roadWidth: 2000,
+    segmentLength: 200,
+    rumbleLength: 3,
+    cameraHeight: 1000,
+    drawDistance: 300
+};
+
+// 玩家赛车状态
+let player = {
+    x: 0, // 赛道左右位置 (-1 到 1)
+    z: 0, // 赛道纵深距离
+    speed: 0,
+    maxSpeed: 12000,
+    accel: 100,
+    breaking: -200,
+    decel: -50,
+    turnSpeed: 0.05
+};
+
+// 键盘控制逻辑
+let keys = { left: false, right: false, up: false, down: false };
+
+// 赛道线段生成
+let segments = [];
+function createTrack() {
+    for (let i = 0; i < 500; i++) {
+        // 动态计算弯道，做出富有现代感的扭曲赛道
+        let curve = 0;
+        if (i > 100 && i < 200) curve = 2;
+        if (i > 240 && i < 350) curve = -3;
+        
+        segments.push({
+            p1: { x: 0, y: Math.sin(i/10)*100, z: i * config.segmentLength },
+            p2: { x: 0, y: Math.sin((i+1)/10)*100, z: (i + 1) * config.segmentLength },
+            curve: curve,
+            color: Math.floor(i / config.rumbleLength) % 2 ? 
+                   { road: '#1e1e2f', grass: '#0d0d1a', rumble: '#00e5ff' } : 
+                   { road: '#1a1a26', grass: '#0a0a14', rumble: '#ff0055' }
+        });
+    }
+}
+
+// 3D 坐标投影到 2D 屏幕
+function project(p, cameraX, cameraY, cameraZ, cameraDepth) {
+    let transX = p.x - cameraX;
+    let transY = p.y - cameraY;
+    let transZ = p.z - cameraZ;
+    
+    let scale = cameraDepth / transZ;
+    
+    return {
+        x: Math.round((canvas.width / 2) + (scale * transX * canvas.width / 2)),
+        y: Math.round((canvas.height / 2) - (scale * transY * canvas.height / 2)),
+        w: Math.round(scale * config.roadWidth * canvas.width / 2)
+    };
+}
+
+// 绘制单段赛道
+function drawSegment(p1, p2, color) {
+    // 渲染草地/背景面
+    ctx.fillStyle = color.grass;
+    ctx.fillRect(0, p2.y, canvas.width, p1.y - p2.y);
+    
+    // 渲染路肩 (Rumble)
+    ctx.fillStyle = color.rumble;
+    ctx.beginPath();
+    ctx.moveTo(p1.x - p1.w * 1.1, p1.y); ctx.lineTo(p1.x - p1.w, p1.y);
+    ctx.lineTo(p2.x - p2.w, p2.y); ctx.lineTo(p2.x - p2.w * 1.1, p2.y);
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.moveTo(p1.x + p1.w * 1.1, p1.y); ctx.lineTo(p1.x + p1.w, p1.y);
+    ctx.lineTo(p2.x + p2.w, p2.y); ctx.lineTo(p2.x + p2.w * 1.1, p2.y);
+    ctx.fill();
+
+    // 渲染主路面
+    ctx.fillStyle = color.road;
+    ctx.beginPath();
+    ctx.moveTo(p1.x - p1.w, p1.y); ctx.lineTo(p1.x + p1.w, p1.y);
+    ctx.lineTo(p2.x + p2.w, p2.y); ctx.lineTo(p2.x - p2.w, p2.y);
+    ctx.fill();
+}
+
+// 渲染现代感赛车 (使用矢量渐变代替老旧像素图)
+function drawPlayer() {
+    let x = canvas.width / 2;
+    let y = canvas.height - 50;
+    
+    ctx.save();
+    ctx.translate(x, y);
+    
+    // 尾灯动态流光效果
+    let gradient = ctx.createLinearGradient(-40, 0, 40, 0);
+    gradient.addColorStop(0, '#ff0055');
+    gradient.addColorStop(0.5, '#ff77aa');
+    gradient.addColorStop(1, '#ff0055');
+    
+    // 车身底盘
+    ctx.fillStyle = '#0f111a';
+    ctx.fillRect(-50, -30, 100, 25);
+    
+    // 能量尾翼
+    ctx.fillStyle = gradient;
+    ctx.fillRect(-60, -45, 120, 10);
+    
+    // 赛车主体喷漆
+    ctx.fillStyle = '#00e5ff';
+    ctx.beginPath();
+    ctx.moveTo(-35, -10);
+    ctx.lineTo(-25, -35);
+    ctx.lineTo(25, -35);
+    ctx.lineTo(35, -10);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 炫酷尾气粒子喷射
+    if (player.speed > 0) {
+        ctx.fillStyle = 'rgba(0, 229, 255, ' + (player.speed/player.maxSpeed) + ')';
+        ctx.fillRect(-30, -5, 15, 15 * (player.speed/3000));
+        ctx.fillRect(15, -5, 15, 15 * (player.speed/3000));
+    }
+    
+    ctx.restore();
+}
+
+// 核心游戏循环
+let position = 0;
+let trackLength = 0;
+let playerXOffset = 0;
+
+function update(dt) {
+    // 速度与按键处理
+    if (keys.up) player.speed += player.accel;
+    else if (keys.down) player.speed += player.breaking;
+    else player.speed += player.decel;
+    
+    player.speed = Math.max(0, Math.min(player.speed, player.maxSpeed));
+    
+    position += player.speed * dt;
+    if (position >= trackLength) position -= trackLength;
+    
+    // 转向控制
+    let currentSegment = segments[Math.floor(position / config.segmentLength) % segments.length];
+    if (keys.left) playerXOffset -= player.turnSpeed * (player.speed / player.maxSpeed);
+    if (keys.right) playerXOffset += player.turnSpeed * (player.speed / player.maxSpeed);
+    
+    // 离心力影响
+    playerXOffset -= (player.speed/player.maxSpeed) * currentSegment.curve * 0.01;
+    playerXOffset = Math.max(-2, Math.min(2, playerXOffset)); // 限制在赛道边缘外侧一点
+    
+    // 更新UI
+    speedDis.innerText = Math.floor((player.speed / player.maxSpeed) * 280);
+    scoreDis.innerText = Math.floor(position / 10);
+}
+
+function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    let baseSegment = segments[Math.floor(position / config.segmentLength) % segments.length];
+    let cameraDepth = 1 / Math.tan((80 / 2) * Math.PI / 180);
+    let startPosition = position;
+    
+    let maxy = canvas.height;
+    let x = 0;
+    let dx = 0;
+    
+    // 从远到近渲染赛道
+    for (let n = 0; n < config.drawDistance; n++) {
+        let segment = segments[(Math.floor(position / config.segmentLength) + n) % segments.length];
+        let loop = segment.p1.z < baseSegment.p1.z ? trackLength : 0;
+        
+        project(segment.p1, playerXOffset * config.roadWidth - x, config.cameraHeight, position - loop, cameraDepth);
+        project(segment.p2, playerXOffset * config.roadWidth - x - dx, config.cameraHeight, position - loop, cameraDepth);
+        
+        x += dx;
+        dx += segment.curve;
+        
+        if (segment.p1.z <= position || segment.p2.y >= maxy) continue;
+        
+        drawSegment(segment.p1, segment.p2, segment.color);
+        maxy = segment.p2.y;
+    }
+    
+    drawPlayer();
+}
+
+function frame() {
+    update(1/config.fps);
+    render();
+    requestAnimationFrame(frame);
+}
+
+// 监听键盘
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp' || e.key === 'w') keys.up = true;
+    if (e.key === 'ArrowDown' || e.key === 's') keys.down = true;
+    if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
+    if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
+});
+window.addEventListener('keyup', (e) => {
+    if (e.key === 'ArrowUp' || e.key === 'w') keys.up = false;
+    if (e.key === 'ArrowDown' || e.key === 's') keys.down = false;
+    if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
+    if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
+});
+
+// 初始化游戏
+createTrack();
+trackLength = segments.length * config.segmentLength;
+frame();
+
+</script>
+</body>
+</html>
