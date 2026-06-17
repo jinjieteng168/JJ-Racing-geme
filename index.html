@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Cyber Race: Ultimate Fixed</title>
+    <title>Cyber Race: Absolute Fix</title>
     <style>
         * {
             box-sizing: border-box;
             -webkit-user-select: none;
             user-select: none;
-        }
-        body, html {
             margin: 0;
             padding: 0;
-            background: #050510;
-            overflow: hidden;
+        }
+        body, html {
             width: 100%;
             height: 100%;
+            background: #050510;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -24,8 +24,8 @@
         }
         canvas {
             display: block;
-            background: #060b19;
-            box-shadow: 0 0 30px rgba(0, 229, 255, 0.3);
+            background: #0a0a1a;
+            box-shadow: 0 0 40px rgba(0, 229, 255, 0.4);
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
@@ -39,10 +39,10 @@
             font-weight: bold;
             pointer-events: none;
             z-index: 10;
-            background: rgba(5, 5, 15, 0.8);
+            background: rgba(5, 5, 15, 0.85);
             padding: 15px;
             border-radius: 8px;
-            border: 1px solid #00e5ff;
+            border: 2px solid #00e5ff;
         }
         .hud-val { color: #00e5ff; }
         .touch-container {
@@ -58,13 +58,13 @@
         }
         .btn-side { display: flex; gap: 20px; pointer-events: auto; }
         .touch-btn {
-            width: 80px;
-            height: 80px;
+            width: 85px;
+            height: 85px;
             background: rgba(255, 255, 255, 0.1);
-            border: 2px solid #00e5ff;
+            border: 3px solid #00e5ff;
             border-radius: 50%;
             color: #00e5ff;
-            font-size: 24px;
+            font-size: 26px;
             font-weight: bold;
             display: flex;
             justify-content: center;
@@ -81,7 +81,7 @@
 <body>
 
     <div id="hud">
-        <div>RANK: <span id="rank-val" class="hud-val">15 / 16</span></div>
+        <div>RANK: <span id="rank-val" class="hud-val">11 / 11</span></div>
         <div>SPEED: <span id="speed-val" class="hud-val">0</span> KM/H</div>
         <div>SCORE: <span id="score-val" class="hud-val">0</span></div>
     </div>
@@ -111,8 +111,9 @@ const config = {
     roadWidth: 2000,
     segmentLength: 200,
     rumbleLength: 3,
-    cameraHeight: 1200, // Raised camera height so road is always visible
-    drawDistance: 200,
+    cameraHeight: 1500, // Safe high-angle camera
+    cameraDepth: 0.8,   // Forced standard depth ratio
+    drawDistance: 300,
     totalCars: 10
 };
 
@@ -134,10 +135,11 @@ let trackLength = 0;
 
 function createTrack() {
     segments = [];
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < 1000; i++) {
         let curve = 0;
-        if (i > 40 && i < 120) curve = 2;
-        if (i > 180 && i < 260) curve = -2;
+        if (i > 50 && i < 150) curve = 2;
+        if (i > 250 && i < 350) curve = -2;
+        if (i > 500 && i < 650) curve = 3;
         
         segments.push({
             index: i,
@@ -145,8 +147,8 @@ function createTrack() {
             p2: { x: 0, y: 0, z: (i + 1) * config.segmentLength },
             curve: curve,
             color: Math.floor(i / config.rumbleLength) % 2 ? 
-                   { road: '#10101e', grass: '#03030a', rumble: '#00e5ff', line: '#ffffff' } : 
-                   { road: '#161626', grass: '#050510', rumble: '#ff0055', line: '#000000' }
+                   { road: '#151525', grass: '#050510', rumble: '#00e5ff', line: '#ffffff' } : 
+                   { road: '#1c1c30', grass: '#080818', rumble: '#ff0055', line: '#000000' }
         });
     }
     trackLength = segments.length * config.segmentLength;
@@ -156,19 +158,23 @@ function spawnCars() {
     cars = [];
     for (let i = 0; i < config.totalCars; i++) {
         cars.push({
-            offset: (i % 2 === 0) ? 0.5 : -0.5, // Spread cars on left/right lanes
-            z: (i + 1) * 3000, // Put them directly ahead of the player start position
-            speed: 4000 + Math.random() * 2000,
+            offset: (i % 2 === 0) ? 0.4 : -0.4,
+            z: (i + 1) * 2500, // Spawned right in front of player viewpoint
+            speed: 4000 + Math.random() * 3000,
             color: i % 2 === 0 ? '#ffcc00' : '#ff00ff'
         });
     }
 }
 
-function project(p, cameraX, cameraY, cameraZ, cameraDepth) {
+function project(p, cameraX, cameraY, cameraZ) {
     let transX = p.x - cameraX;
     let transY = p.y - cameraY;
     let transZ = p.z - cameraZ;
-    let scale = cameraDepth / transZ;
+    
+    // Prevent Division by Zero Error on iPad Safari
+    if (transZ <= 0) transZ = 1; 
+    
+    let scale = config.cameraDepth / transZ;
     
     return {
         x: Math.round((canvas.width / 2) + (scale * transX * canvas.width / 2)),
@@ -178,34 +184,34 @@ function project(p, cameraX, cameraY, cameraZ, cameraDepth) {
 }
 
 function drawSegment(p1, p2, color) {
-    // Grass background
+    // Fill background side grass
     ctx.fillStyle = color.grass;
     ctx.fillRect(0, p2.y, canvas.width, p1.y - p2.y);
     
-    // Rumble border left
+    // Left Cyber Rumble
     ctx.fillStyle = color.rumble;
     ctx.beginPath();
     ctx.moveTo(p1.x - p1.w * 1.1, p1.y); ctx.lineTo(p1.x - p1.w, p1.y);
     ctx.lineTo(p2.x - p2.w, p2.y); ctx.lineTo(p2.x - p2.w * 1.1, p2.y);
     ctx.fill();
     
-    // Rumble border right
+    // Right Cyber Rumble
     ctx.beginPath();
     ctx.moveTo(p1.x + p1.w * 1.1, p1.y); ctx.lineTo(p1.x + p1.w, p1.y);
     ctx.lineTo(p2.x + p2.w, p2.y); ctx.lineTo(p2.x + p2.w * 1.1, p2.y);
     ctx.fill();
 
-    // Main central Road
+    // Central Main Road
     ctx.fillStyle = color.road;
     ctx.beginPath();
     ctx.moveTo(p1.x - p1.w, p1.y); ctx.lineTo(p1.x + p1.w, p1.y);
     ctx.lineTo(p2.x + p2.w, p2.y); ctx.lineTo(p2.x - p2.w, p2.y);
     ctx.fill();
 
-    // Center divider strip lines
+    // Center Lanes lines
     if (color.line !== '#000000') {
         ctx.fillStyle = color.line;
-        let w1 = p1.w * 0.02, w2 = p2.w * 0.02;
+        let w1 = p1.w * 0.03, w2 = p2.w * 0.03;
         ctx.beginPath();
         ctx.moveTo(p1.x - w1, p1.y); ctx.lineTo(p1.x + w1, p1.y);
         ctx.lineTo(p2.x + w2, p2.y); ctx.lineTo(p2.x - w2, p2.y);
@@ -213,53 +219,55 @@ function drawSegment(p1, p2, color) {
     }
 }
 
-function drawEnemyCar(car, segment, cameraDepth) {
+function drawEnemyCar(car, segment) {
     let carX = car.offset * config.roadWidth;
-    let scale = cameraDepth / (car.z - player.z);
+    let transZ = car.z - player.z;
+    if (transZ <= 0) return;
+
+    let scale = config.cameraDepth / transZ;
     
     let spriteX = Math.round((canvas.width / 2) + (scale * (carX - (player.x * config.roadWidth)) * canvas.width / 2));
     let spriteY = Math.round((canvas.height / 2) - (scale * (0 - config.cameraHeight) * canvas.height / 2));
-    let spriteW = Math.round(scale * 500 * canvas.width / 2);
+    let spriteW = Math.round(scale * 600 * canvas.width / 2);
     let spriteH = spriteW * 0.5;
 
-    // Draw Enemy Car Body Box
+    // Drawing Box Car shape
     ctx.fillStyle = car.color;
-    ctx.fillRect(spriteX - spriteW/2, spriteY - spriteH, spriteW, spriteH);
+    ctx.fillRect(spriteX - spriteW / 2, spriteY - spriteH, spriteW, spriteH);
     
-    // Enemy Breaklights
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(spriteX - spriteW/2 + 5, spriteY - spriteH + 5, spriteW * 0.2, spriteH * 0.2);
-    ctx.fillRect(spriteX + spriteW/2 - (spriteW * 0.2) - 5, spriteY - spriteH + 5, spriteW * 0.2, spriteH * 0.2);
+    // Tail lights
+    ctx.fillStyle = '#ff0055';
+    ctx.fillRect(spriteX - spriteW / 2 + 4, spriteY - spriteH + 4, spriteW * 0.2, spriteH * 0.2);
+    ctx.fillRect(spriteX + spriteW / 2 - (spriteW * 0.2) - 4, spriteY - spriteH + 4, spriteW * 0.2, spriteH * 0.2);
 }
 
 function drawPlayer() {
     let x = canvas.width / 2;
-    let y = canvas.height - 40;
+    let y = canvas.height - 50;
     
     ctx.save();
     ctx.translate(x, y);
     
-    // Neon glow effect around base
-    ctx.shadowBlur = 15;
+    ctx.shadowBlur = 20;
     ctx.shadowColor = '#00e5ff';
 
-    // Main Chassis
+    // Player Hypercar Chassis Frame
     ctx.fillStyle = '#00e5ff';
     ctx.beginPath();
-    ctx.moveTo(-35, 0);
-    ctx.lineTo(-25, -30);
-    ctx.lineTo(25, -30);
-    ctx.lineTo(35, 0);
+    ctx.moveTo(-40, 0);
+    ctx.lineTo(-25, -35);
+    ctx.lineTo(25, -35);
+    ctx.lineTo(40, 0);
     ctx.closePath();
     ctx.fill();
     
-    // Rear Wing Spoiler
+    // Engine glow wing
     ctx.fillStyle = '#ff0055';
-    ctx.fillRect(-45, -38, 90, 8);
+    ctx.fillRect(-50, -42, 100, 8);
     
-    // Cabin Cockpit
-    ctx.fillStyle = '#111';
-    ctx.fillRect(-12, -22, 24, 15);
+    // Cockpit
+    ctx.fillStyle = '#050510';
+    ctx.fillRect(-15, -25, 30, 18);
 
     ctx.restore();
 }
@@ -287,14 +295,14 @@ function update(dt) {
         car.z += car.speed * dt;
         if (car.z >= trackLength) car.z -= trackLength;
         
-        // Collision Detection Matrix
-        if (Math.abs(player.z - car.z) < 200 && Math.abs(player.x - car.offset) < 0.5) {
-            player.speed = car.speed * 0.5; // Crash penalty
+        // Accurate Smash Matrix
+        if (Math.abs(player.z - car.z) < 250 && Math.abs(player.x - car.offset) < 0.5) {
+            player.speed = car.speed * 0.4;
         }
         if (player.z > car.z) rank--;
     });
 
-    speedVal.innerText = Math.floor((player.speed / player.maxSpeed) * 299);
+    speedVal.innerText = Math.floor((player.speed / player.maxSpeed) * 310);
     scoreVal.innerText = Math.floor(player.z / 10);
     rankVal.innerText = rank + " / " + (config.totalCars + 1);
 }
@@ -302,36 +310,48 @@ function update(dt) {
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Draw Sky / Horizon space fill
-    ctx.fillStyle = '#060b19';
+    // Sky Box fill
+    ctx.fillStyle = '#030308';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     let baseIdx = Math.floor(player.z / config.segmentLength) % segments.length;
     let baseSegment = segments[baseIdx];
-    let cameraDepth = 1 / Math.tan((80 / 2) * Math.PI / 180);
     
     let maxy = canvas.height;
     let x = 0, dx = 0;
     
+    // Draw 3D road tracks
     for (let n = 0; n < config.drawDistance; n++) {
         let segment = segments[(baseIdx + n) % segments.length];
         let loop = segment.p1.z < baseSegment.p1.z ? trackLength : 0;
         
-        project(segment.p1, (player.x * config.roadWidth) - x, config.cameraHeight, player.z - loop, cameraDepth);
-        project(segment.p2, (player.x * config.roadWidth) - x - dx, config.cameraHeight, player.z - loop, cameraDepth);
+        let p1_projected = project(segment.p1, (player.x * config.roadWidth) - x, config.cameraHeight, player.z - loop);
+        let p2_projected = project(segment.p2, (player.x * config.roadWidth) - x - dx, config.cameraHeight, player.z - loop);
+        
+        segment.p1.screenX = p1_projected.x;
+        segment.p1.screenY = p1_projected.y;
+        segment.p1.screenW = p1_projected.w;
+        
+        segment.p2.screenX = p2_projected.x;
+        segment.p2.screenY = p2_projected.y;
+        segment.p2.screenW = p2_projected.w;
         
         x += dx;
         dx += segment.curve;
         
-        if (segment.p1.z <= player.z || segment.p2.y >= maxy) continue;
+        if (segment.p1.z <= player.z || segment.p2.screenY >= maxy) continue;
         
         drawSegment(segment.p1, segment.p2, segment.color);
-        maxy = segment.p2.y;
-        
+        maxy = segment.p2.screenY;
+    }
+    
+    // Render Enemy AI cars correctly layered above road grid
+    for (let n = config.drawDistance - 1; n >= 0; n--) {
+        let segment = segments[(baseIdx + n) % segments.length];
         cars.forEach(car => {
             let carIdx = Math.floor(car.z / config.segmentLength) % segments.length;
             if (carIdx === segment.index) {
-                drawEnemyCar(car, segment, cameraDepth);
+                drawEnemyCar(car, segment);
             }
         });
     }
