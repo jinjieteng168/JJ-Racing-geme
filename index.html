@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Cyber Race: Ultimate Edition</title>
+    <title>Cyber Race: Ultimate Fixed</title>
     <style>
         * {
             box-sizing: border-box;
@@ -17,101 +17,73 @@
             overflow: hidden;
             width: 100%;
             height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
+            font-family: sans-serif;
         }
-        /* Perfect Responsive Canvas for iPad Screen */
         canvas {
             display: block;
-            background: linear-gradient(to bottom, #0d1b2a 0%, #010811 100%);
-            box-shadow: 0 0 40px rgba(0, 229, 255, 0.25);
+            background: #060b19;
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.3);
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
         }
-        /* Modern Floating Cyber HUD */
         #hud {
             position: absolute;
             top: 20px;
             left: 20px;
             color: #ffffff;
-            text-shadow: 0 0 10px #00e5ff;
             font-size: 18px;
+            font-weight: bold;
             pointer-events: none;
             z-index: 10;
-            background: rgba(5, 5, 15, 0.7);
-            padding: 15px 25px;
-            border-radius: 12px;
-            border: 1px solid rgba(0, 229, 255, 0.3);
-            backdrop-filter: blur(8px);
+            background: rgba(5, 5, 15, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #00e5ff;
         }
-        .hud-row {
-            margin: 5px 0;
-            font-weight: bold;
-        }
-        .hud-val {
-            color: #00e5ff;
-            font-variant-numeric: tabular-nums;
-        }
-        #rank-val {
-            color: #ff0055;
-            text-shadow: 0 0 10px #ff0055;
-        }
-
-        /* Virtual Controller Layout for iPad Landscape Grid */
+        .hud-val { color: #00e5ff; }
         .touch-container {
             position: absolute;
-            bottom: 40px;
+            bottom: 30px;
             left: 0;
             width: 100%;
-            padding: 0 50px;
+            padding: 0 40px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
             z-index: 10;
             pointer-events: none;
         }
-        .btn-side {
-            display: flex;
-            gap: 25px;
-            pointer-events: auto;
-        }
+        .btn-side { display: flex; gap: 20px; pointer-events: auto; }
         .touch-btn {
-            width: 90px;
-            height: 90px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(0, 229, 255, 0.4);
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #00e5ff;
             border-radius: 50%;
             color: #00e5ff;
-            font-size: 26px;
+            font-size: 24px;
             font-weight: bold;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.1);
             backdrop-filter: blur(5px);
-            transition: background 0.1s, transform 0.1s;
         }
-        .touch-btn:active {
-            background: rgba(0, 229, 255, 0.3);
-            border-color: #00e5ff;
-            box-shadow: 0 0 30px rgba(0, 229, 255, 0.7);
-            transform: scale(0.9);
-        }
+        .touch-btn:active { background: rgba(0, 229, 255, 0.4); }
         .btn-gas { border-color: #00ffaa; color: #00ffaa; }
-        .btn-gas:active { background: rgba(0, 255, 170, 0.3); border-color: #00ffaa; box-shadow: 0 0 30px rgba(0, 255, 170, 0.7); }
+        .btn-gas:active { background: rgba(0, 255, 170, 0.4); }
         .btn-brk { border-color: #ff0055; color: #ff0055; }
-        .btn-brk:active { background: rgba(255, 0, 85, 0.3); border-color: #ff0055; box-shadow: 0 0 30px rgba(255, 0, 85, 0.7); }
+        .btn-brk:active { background: rgba(255, 0, 85, 0.4); }
     </style>
 </head>
 <body>
 
     <div id="hud">
-        <div class="hud-row">RANK: <span id="rank-val" class="hud-val">10 / 10</span></div>
-        <div class="hud-row">SPEED: <span id="speed-val" class="hud-val">0</span> KM/H</div>
-        <div class="hud-row">SCORE: <span id="score-val" class="hud-val">0</span></div>
+        <div>RANK: <span id="rank-val" class="hud-val">15 / 16</span></div>
+        <div>SPEED: <span id="speed-val" class="hud-val">0</span> KM/H</div>
+        <div>SCORE: <span id="score-val" class="hud-val">0</span></div>
     </div>
 
     <canvas id="gameCanvas" width="1024" height="640"></canvas>
@@ -134,78 +106,64 @@ const speedVal = document.getElementById('speed-val');
 const scoreVal = document.getElementById('score-val');
 const rankVal = document.getElementById('rank-val');
 
-// Game Core Configurations
 const config = {
     fps: 60,
     roadWidth: 2000,
     segmentLength: 200,
     rumbleLength: 3,
-    cameraHeight: 1000,
-    drawDistance: 300,
-    totalCars: 15
+    cameraHeight: 1200, // Raised camera height so road is always visible
+    drawDistance: 200,
+    totalCars: 10
 };
 
-// Player State
 let player = {
     x: 0, 
     z: 0, 
     speed: 0,
-    maxSpeed: 14000,
-    accel: 120,
-    breaking: -250,
-    decel: -60,
-    turnSpeed: 0.05,
-    realX: 0
+    maxSpeed: 12000,
+    accel: 150,
+    breaking: -300,
+    decel: -50,
+    turnSpeed: 0.06
 };
 
-// Controls Map
 let keys = { left: false, right: false, up: false, down: false };
-
-// Track & Enemies State
 let segments = [];
 let cars = [];
 let trackLength = 0;
 
-// Generate Modern Cyber Track
 function createTrack() {
-    for (let i = 0; i < 1000; i++) {
+    segments = [];
+    for (let i = 0; i < 500; i++) {
         let curve = 0;
-        if (i > 60 && i < 160) curve = 2.5;
-        if (i > 200 && i < 300) curve = -3.5;
-        if (i > 450 && i < 580) curve = 4;
-        if (i > 650 && i < 780) curve = -2;
-
-        let hill = 0;
-        if (i > 120 && i < 260) hill = Math.sin((i - 120) / 20) * 180;
-        if (i > 500 && i < 700) hill = Math.sin((i - 500) / 30) * 250;
+        if (i > 40 && i < 120) curve = 2;
+        if (i > 180 && i < 260) curve = -2;
         
         segments.push({
             index: i,
-            p1: { x: 0, y: hill, z: i * config.segmentLength },
-            p2: { x: 0, y: hill, z: (i + 1) * config.segmentLength },
+            p1: { x: 0, y: 0, z: i * config.segmentLength },
+            p2: { x: 0, y: 0, z: (i + 1) * config.segmentLength },
             curve: curve,
             color: Math.floor(i / config.rumbleLength) % 2 ? 
-                   { road: '#1b1b2f', grass: '#060612', rumble: '#00e5ff', line: '#ffffff' } : 
-                   { road: '#141424', grass: '#04040a', rumble: '#ff0055', line: '#000000' }
+                   { road: '#10101e', grass: '#03030a', rumble: '#00e5ff', line: '#ffffff' } : 
+                   { road: '#161626', grass: '#050510', rumble: '#ff0055', line: '#000000' }
         });
     }
     trackLength = segments.length * config.segmentLength;
 }
 
-// Populate Competitor AI Cars
 function spawnCars() {
+    cars = [];
     for (let i = 0; i < config.totalCars; i++) {
         cars.push({
-            offset: Math.random() * 1.4 - 0.7, // Position across the road width (-1 to 1)
-            z: (i + 1) * (trackLength / (config.totalCars + 2)),
-            speed: 5000 + Math.random() * 5000,
-            color: 'hsl(' + (Math.random() * 360) + ', 100%, 60%)',
-            width: 400
+            offset: (i % 2 === 0) ? 0.5 : -0.5, // Spread cars on left/right lanes
+            z: (i + 1) * 3000, // Put them directly ahead of the player start position
+            speed: 4000 + Math.random() * 2000,
+            color: i % 2 === 0 ? '#ffcc00' : '#ff00ff'
         });
     }
 }
 
-// 3D Engine Projection Grid
 function project(p, cameraX, cameraY, cameraZ, cameraDepth) {
     let transX = p.x - cameraX;
     let transY = p.y - cameraY;
@@ -219,192 +177,135 @@ function project(p, cameraX, cameraY, cameraZ, cameraDepth) {
     };
 }
 
-// Rendering System
 function drawSegment(p1, p2, color) {
-    // Cyber Horizon / Background fills automatically via canvas setup
+    // Grass background
     ctx.fillStyle = color.grass;
     ctx.fillRect(0, p2.y, canvas.width, p1.y - p2.y);
     
-    // Side Neon Rumbles
+    // Rumble border left
     ctx.fillStyle = color.rumble;
     ctx.beginPath();
-    ctx.moveTo(p1.x - p1.w * 1.08, p1.y); ctx.lineTo(p1.x - p1.w, p1.y);
-    ctx.lineTo(p2.x - p2.w, p2.y); ctx.lineTo(p2.x - p2.w * 1.08, p2.y);
+    ctx.moveTo(p1.x - p1.w * 1.1, p1.y); ctx.lineTo(p1.x - p1.w, p1.y);
+    ctx.lineTo(p2.x - p2.w, p2.y); ctx.lineTo(p2.x - p2.w * 1.1, p2.y);
     ctx.fill();
     
+    // Rumble border right
     ctx.beginPath();
-    ctx.moveTo(p1.x + p1.w * 1.08, p1.y); ctx.lineTo(p1.x + p1.w, p1.y);
-    ctx.lineTo(p2.x + p2.w, p2.y); ctx.lineTo(p2.x + p2.w * 1.08, p2.y);
+    ctx.moveTo(p1.x + p1.w * 1.1, p1.y); ctx.lineTo(p1.x + p1.w, p1.y);
+    ctx.lineTo(p2.x + p2.w, p2.y); ctx.lineTo(p2.x + p2.w * 1.1, p2.y);
     ctx.fill();
 
-    // Core Roadbed
+    // Main central Road
     ctx.fillStyle = color.road;
     ctx.beginPath();
     ctx.moveTo(p1.x - p1.w, p1.y); ctx.lineTo(p1.x + p1.w, p1.y);
     ctx.lineTo(p2.x + p2.w, p2.y); ctx.lineTo(p2.x - p2.w, p2.y);
     ctx.fill();
 
-    // Center Lane Markings
+    // Center divider strip lines
     if (color.line !== '#000000') {
         ctx.fillStyle = color.line;
-        let lw1 = p1.w * 0.04, lw2 = p2.w * 0.04;
+        let w1 = p1.w * 0.02, w2 = p2.w * 0.02;
         ctx.beginPath();
-        ctx.moveTo(p1.x - lw1, p1.y); ctx.lineTo(p1.x + lw1, p1.y);
-        ctx.lineTo(p2.x + lw2, p2.y); ctx.lineTo(p2.x - lw2, p2.y);
+        ctx.moveTo(p1.x - w1, p1.y); ctx.lineTo(p1.x + w1, p1.y);
+        ctx.lineTo(p2.x + w2, p2.y); ctx.lineTo(p2.x - w2, p2.y);
         ctx.fill();
     }
 }
 
-// Render Enemy & AI Cars in 3D Space
 function drawEnemyCar(car, segment, cameraDepth) {
     let carX = car.offset * config.roadWidth;
     let scale = cameraDepth / (car.z - player.z);
     
-    let spriteX = Math.round((canvas.width / 2) + (scale * (carX - player.realX) * canvas.width / 2));
-    let spriteY = Math.round((canvas.height / 2) - (scale * (segment.p1.y - config.cameraHeight) * canvas.height / 2));
-    let spriteW = Math.round(scale * car.width * canvas.width / 2);
-    let spriteH = spriteW * 0.6;
+    let spriteX = Math.round((canvas.width / 2) + (scale * (carX - (player.x * config.roadWidth)) * canvas.width / 2));
+    let spriteY = Math.round((canvas.height / 2) - (scale * (0 - config.cameraHeight) * canvas.height / 2));
+    let spriteW = Math.round(scale * 500 * canvas.width / 2);
+    let spriteH = spriteW * 0.5;
 
-    // Draw Enemy Body
+    // Draw Enemy Car Body Box
     ctx.fillStyle = car.color;
     ctx.fillRect(spriteX - spriteW/2, spriteY - spriteH, spriteW, spriteH);
     
-    // Enemy Wheels & Backlights
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(spriteX - spriteW/2, spriteY - spriteH*0.3, spriteW*0.2, spriteH*0.3);
-    ctx.fillRect(spriteX + spriteW/2 - spriteW*0.2, spriteY - spriteH*0.3, spriteW*0.2, spriteH*0.3);
-    
-    ctx.fillStyle = '#ff3300';
-    ctx.fillRect(spriteX - spriteW/2.5, spriteY - spriteH*0.9, spriteW*0.15, spriteH*0.15);
-    ctx.fillRect(spriteX + spriteW/2.5 - spriteW*0.15, spriteY - spriteH*0.9, spriteW*0.15, spriteH*0.15);
+    // Enemy Breaklights
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(spriteX - spriteW/2 + 5, spriteY - spriteH + 5, spriteW * 0.2, spriteH * 0.2);
+    ctx.fillRect(spriteX + spriteW/2 - (spriteW * 0.2) - 5, spriteY - spriteH + 5, spriteW * 0.2, spriteH * 0.2);
 }
 
-// Render Core Player Hypercar
 function drawPlayer() {
     let x = canvas.width / 2;
-    let y = canvas.height - 50;
+    let y = canvas.height - 40;
     
     ctx.save();
     ctx.translate(x, y);
     
-    if (keys.left && player.speed > 0) ctx.rotate(-0.04);
-    if (keys.right && player.speed > 0) ctx.rotate(0.04);
-
-    // Engine Underglow
-    ctx.shadowBlur = 25;
+    // Neon glow effect around base
+    ctx.shadowBlur = 15;
     ctx.shadowColor = '#00e5ff';
-    ctx.fillStyle = 'rgba(0, 229, 255, 0.3)';
-    ctx.fillRect(-50, -10, 100, 15);
-    ctx.shadowBlur = 0;
 
-    // Rear Aero Wing
-    let wingGrad = ctx.createLinearGradient(-60, 0, 60, 0);
-    wingGrad.addColorStop(0, '#ff0055');
-    wingGrad.addColorStop(0.5, '#00e5ff');
-    wingGrad.addColorStop(1, '#ff0055');
-    ctx.fillStyle = wingGrad;
-    ctx.fillRect(-65, -35, 130, 8);
-
-    // Chassis Main Frame
-    ctx.fillStyle = '#0a0b10';
-    ctx.beginPath();
-    ctx.moveTo(-45, 5);
-    ctx.lineTo(-35, -25);
-    ctx.lineTo(35, -25);
-    ctx.lineTo(45, 5);
-    ctx.closePath();
-    ctx.fill();
-
-    // Laser Accents
+    // Main Chassis
     ctx.fillStyle = '#00e5ff';
-    ctx.fillRect(-30, -20, 5, 20);
-    ctx.fillRect(25, -20, 5, 20);
-
-    // Cockpit Window
-    ctx.fillStyle = '#181a26';
     ctx.beginPath();
-    ctx.moveTo(-18, -8);
-    ctx.lineTo(-12, -23);
-    ctx.lineTo(12, -23);
-    ctx.lineTo(18, -8);
+    ctx.moveTo(-35, 0);
+    ctx.lineTo(-25, -30);
+    ctx.lineTo(25, -30);
+    ctx.lineTo(35, 0);
     ctx.closePath();
     ctx.fill();
+    
+    // Rear Wing Spoiler
+    ctx.fillStyle = '#ff0055';
+    ctx.fillRect(-45, -38, 90, 8);
+    
+    // Cabin Cockpit
+    ctx.fillStyle = '#111';
+    ctx.fillRect(-12, -22, 24, 15);
 
-    // Jet Tail Flame Particles
-    if (player.speed > 0) {
-        let pRatio = player.speed / player.maxSpeed;
-        ctx.fillStyle = '#ff0055';
-        ctx.fillRect(-28, 5, 12, 10 * pRatio + Math.random() * 6);
-        ctx.fillRect(16, 5, 12, 10 * pRatio + Math.random() * 6);
-    }
     ctx.restore();
 }
 
-// System Updates & Collision Physics
 function update(dt) {
-    // Engine Throttle Logic
     if (keys.up) player.speed += player.accel;
     else if (keys.down) player.speed += player.breaking;
     else player.speed += player.decel;
     
     player.speed = Math.max(0, Math.min(player.speed, player.maxSpeed));
-    
-    // Advancement track
     player.z += player.speed * dt;
     if (player.z >= trackLength) player.z -= trackLength;
     
-    let currentIdx = Math.floor(player.z / config.segmentLength) % segments.length;
-    let currentSegment = segments[currentIdx];
+    let baseIdx = Math.floor(player.z / config.segmentLength) % segments.length;
+    let currentSegment = segments[baseIdx];
     
-    // Steering Handle
     if (keys.left) player.x -= player.turnSpeed * (player.speed / player.maxSpeed);
     if (keys.right) player.x += player.turnSpeed * (player.speed / player.maxSpeed);
     
-    // Centrifugal Drift Pull
-    player.x -= (player.speed / player.maxSpeed) * currentSegment.curve * 0.012;
+    player.x -= (player.speed / player.maxSpeed) * currentSegment.curve * 0.01;
     player.x = Math.max(-2, Math.min(2, player.x));
-    player.realX = player.x * config.roadWidth;
 
-    // Track Boundary Friction Penalty
-    if ((player.x < -1 || player.x > 1) && player.speed > 3000) {
-        player.speed += player.breaking * 0.6; 
-    }
-
-    // Process & Track Competitors
     let rank = config.totalCars + 1;
     cars.forEach(car => {
         car.z += car.speed * dt;
         if (car.z >= trackLength) car.z -= trackLength;
         
-        // AI Driving Line Adjustments
-        let carSeg = segments[Math.floor(car.z / config.segmentLength) % segments.length];
-        car.offset += Math.sin(car.z / 5000) * 0.01 - carSeg.curve * 0.005;
-        car.offset = Math.max(-0.8, Math.min(0.8, car.offset));
-
-        // Core Collision Matrix Detect (Player <-> Enemy)
-        if (Math.abs(player.z - car.z) < 250) { 
-            let carRealX = car.offset * config.roadWidth;
-            if (Math.abs(player.realX - carRealX) < 350) {
-                // Slam/Crash slowdown response
-                player.speed = car.speed * 0.6;
-                player.z -= 10; 
-            }
+        // Collision Detection Matrix
+        if (Math.abs(player.z - car.z) < 200 && Math.abs(player.x - car.offset) < 0.5) {
+            player.speed = car.speed * 0.5; // Crash penalty
         }
-        
-        // Tabulate Race Positions
         if (player.z > car.z) rank--;
     });
 
-    // Update Floating HUD Displays
-    speedVal.innerText = Math.floor((player.speed / player.maxSpeed) * 340);
-    scoreVal.innerText = Math.floor(player.z / 15);
+    speedVal.innerText = Math.floor((player.speed / player.maxSpeed) * 299);
+    scoreVal.innerText = Math.floor(player.z / 10);
     rankVal.innerText = rank + " / " + (config.totalCars + 1);
 }
 
-// Master Engine Renderer Loop
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    // Draw Sky / Horizon space fill
+    ctx.fillStyle = '#060b19';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     let baseIdx = Math.floor(player.z / config.segmentLength) % segments.length;
     let baseSegment = segments[baseIdx];
     let cameraDepth = 1 / Math.tan((80 / 2) * Math.PI / 180);
@@ -412,13 +313,12 @@ function render() {
     let maxy = canvas.height;
     let x = 0, dx = 0;
     
-    // 3D Depth Render Scan Line
     for (let n = 0; n < config.drawDistance; n++) {
         let segment = segments[(baseIdx + n) % segments.length];
         let loop = segment.p1.z < baseSegment.p1.z ? trackLength : 0;
         
-        project(segment.p1, player.realX - x, config.cameraHeight + baseSegment.p1.y, player.z - loop, cameraDepth);
-        project(segment.p2, player.realX - x - dx, config.cameraHeight + baseSegment.p1.y, player.z - loop, cameraDepth);
+        project(segment.p1, (player.x * config.roadWidth) - x, config.cameraHeight, player.z - loop, cameraDepth);
+        project(segment.p2, (player.x * config.roadWidth) - x - dx, config.cameraHeight, player.z - loop, cameraDepth);
         
         x += dx;
         dx += segment.curve;
@@ -428,10 +328,9 @@ function render() {
         drawSegment(segment.p1, segment.p2, segment.color);
         maxy = segment.p2.y;
         
-        // Draw Enemy Cars matching this track frame segment distance
         cars.forEach(car => {
             let carIdx = Math.floor(car.z / config.segmentLength) % segments.length;
-            if (carIdx === segment.index && car.z > player.z) {
+            if (carIdx === segment.index) {
                 drawEnemyCar(car, segment, cameraDepth);
             }
         });
@@ -440,14 +339,12 @@ function render() {
     drawPlayer();
 }
 
-// Runner Frame Tick
 function frame() {
     update(1 / config.fps);
     render();
     requestAnimationFrame(frame);
 }
 
-// iPad Universal Touch Integration API
 function attachTouch(id, action) {
     const el = document.getElementById(id);
     el.addEventListener('touchstart', (e) => { e.preventDefault(); keys[action] = true; }, { passive: false });
@@ -459,7 +356,6 @@ attachTouch('key-right', 'right');
 attachTouch('key-up', 'up');
 attachTouch('key-down', 'down');
 
-// Backward Desktop Keyboard Map
 window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowUp' || e.key === 'w') keys.up = true;
     if (e.key === 'ArrowDown' || e.key === 's') keys.down = true;
@@ -473,7 +369,6 @@ window.addEventListener('keyup', (e) => {
     if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
 });
 
-// Boot Master Configuration
 createTrack();
 spawnCars();
 frame();
