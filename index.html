@@ -1,108 +1,215 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Modern Cyber Racing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Cyber Race: Ultimate Edition</title>
     <style>
-        body {
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        body, html {
             margin: 0;
             padding: 0;
-            background: #0a0a16;
+            background: #050510;
             overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
         }
-        #gameCanvas {
-            background: linear-gradient(to bottom, #111c3a 0%, #060b19 100%);
-            box-shadow: 0 0 30px rgba(0, 229, 255, 0.3);
-            border-radius: 12px;
+        /* Perfect Responsive Canvas for iPad Screen */
+        canvas {
+            display: block;
+            background: linear-gradient(to bottom, #0d1b2a 0%, #010811 100%);
+            box-shadow: 0 0 40px rgba(0, 229, 255, 0.25);
             max-width: 100%;
             max-height: 100%;
+            object-fit: contain;
         }
-        #ui-panel {
+        /* Modern Floating Cyber HUD */
+        #hud {
             position: absolute;
             top: 20px;
             left: 20px;
-            color: #fff;
+            color: #ffffff;
             text-shadow: 0 0 10px #00e5ff;
-            font-size: 20px;
+            font-size: 18px;
             pointer-events: none;
+            z-index: 10;
+            background: rgba(5, 5, 15, 0.7);
+            padding: 15px 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            backdrop-filter: blur(8px);
+        }
+        .hud-row {
+            margin: 5px 0;
+            font-weight: bold;
         }
         .hud-val {
-            font-weight: bold;
             color: #00e5ff;
+            font-variant-numeric: tabular-nums;
         }
+        #rank-val {
+            color: #ff0055;
+            text-shadow: 0 0 10px #ff0055;
+        }
+
+        /* Virtual Controller Layout for iPad Landscape Grid */
+        .touch-container {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            padding: 0 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .btn-side {
+            display: flex;
+            gap: 25px;
+            pointer-events: auto;
+        }
+        .touch-btn {
+            width: 90px;
+            height: 90px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 229, 255, 0.4);
+            border-radius: 50%;
+            color: #00e5ff;
+            font-size: 26px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.1);
+            backdrop-filter: blur(5px);
+            transition: background 0.1s, transform 0.1s;
+        }
+        .touch-btn:active {
+            background: rgba(0, 229, 255, 0.3);
+            border-color: #00e5ff;
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.7);
+            transform: scale(0.9);
+        }
+        .btn-gas { border-color: #00ffaa; color: #00ffaa; }
+        .btn-gas:active { background: rgba(0, 255, 170, 0.3); border-color: #00ffaa; box-shadow: 0 0 30px rgba(0, 255, 170, 0.7); }
+        .btn-brk { border-color: #ff0055; color: #ff0055; }
+        .btn-brk:active { background: rgba(255, 0, 85, 0.3); border-color: #ff0055; box-shadow: 0 0 30px rgba(255, 0, 85, 0.7); }
     </style>
 </head>
 <body>
 
-    <div id="ui-panel">
-        <div>SPEED: <span id="speed-dis" class="hud-val">0</span> KM/H</div>
-        <div>SCORE: <span id="score-dis" class="hud-val">0</span></div>
+    <div id="hud">
+        <div class="hud-row">RANK: <span id="rank-val" class="hud-val">10 / 10</span></div>
+        <div class="hud-row">SPEED: <span id="speed-val" class="hud-val">0</span> KM/H</div>
+        <div class="hud-row">SCORE: <span id="score-val" class="hud-val">0</span></div>
     </div>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <canvas id="gameCanvas" width="1024" height="640"></canvas>
+
+    <div class="touch-container">
+        <div class="btn-side">
+            <div class="touch-btn" id="key-left">◀</div>
+            <div class="touch-btn" id="key-right">▶</div>
+        </div>
+        <div class="btn-side">
+            <div class="touch-btn btn-brk" id="key-down">B</div>
+            <div class="touch-btn btn-gas" id="key-up">GAS</div>
+        </div>
+    </div>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const speedDis = document.getElementById('speed-dis');
-const scoreDis = document.getElementById('score-dis');
+const speedVal = document.getElementById('speed-val');
+const scoreVal = document.getElementById('score-val');
+const rankVal = document.getElementById('rank-val');
 
-// 游戏配置
+// Game Core Configurations
 const config = {
     fps: 60,
     roadWidth: 2000,
     segmentLength: 200,
     rumbleLength: 3,
     cameraHeight: 1000,
-    drawDistance: 300
+    drawDistance: 300,
+    totalCars: 15
 };
 
-// 玩家赛车状态
+// Player State
 let player = {
-    x: 0, // 赛道左右位置 (-1 到 1)
-    z: 0, // 赛道纵深距离
+    x: 0, 
+    z: 0, 
     speed: 0,
-    maxSpeed: 12000,
-    accel: 100,
-    breaking: -200,
-    decel: -50,
-    turnSpeed: 0.05
+    maxSpeed: 14000,
+    accel: 120,
+    breaking: -250,
+    decel: -60,
+    turnSpeed: 0.05,
+    realX: 0
 };
 
-// 键盘控制逻辑
+// Controls Map
 let keys = { left: false, right: false, up: false, down: false };
 
-// 赛道线段生成
+// Track & Enemies State
 let segments = [];
+let cars = [];
+let trackLength = 0;
+
+// Generate Modern Cyber Track
 function createTrack() {
-    for (let i = 0; i < 500; i++) {
-        // 动态计算弯道，做出富有现代感的扭曲赛道
+    for (let i = 0; i < 1000; i++) {
         let curve = 0;
-        if (i > 100 && i < 200) curve = 2;
-        if (i > 240 && i < 350) curve = -3;
+        if (i > 60 && i < 160) curve = 2.5;
+        if (i > 200 && i < 300) curve = -3.5;
+        if (i > 450 && i < 580) curve = 4;
+        if (i > 650 && i < 780) curve = -2;
+
+        let hill = 0;
+        if (i > 120 && i < 260) hill = Math.sin((i - 120) / 20) * 180;
+        if (i > 500 && i < 700) hill = Math.sin((i - 500) / 30) * 250;
         
         segments.push({
-            p1: { x: 0, y: Math.sin(i/10)*100, z: i * config.segmentLength },
-            p2: { x: 0, y: Math.sin((i+1)/10)*100, z: (i + 1) * config.segmentLength },
+            index: i,
+            p1: { x: 0, y: hill, z: i * config.segmentLength },
+            p2: { x: 0, y: hill, z: (i + 1) * config.segmentLength },
             curve: curve,
             color: Math.floor(i / config.rumbleLength) % 2 ? 
-                   { road: '#1e1e2f', grass: '#0d0d1a', rumble: '#00e5ff' } : 
-                   { road: '#1a1a26', grass: '#0a0a14', rumble: '#ff0055' }
+                   { road: '#1b1b2f', grass: '#060612', rumble: '#00e5ff', line: '#ffffff' } : 
+                   { road: '#141424', grass: '#04040a', rumble: '#ff0055', line: '#000000' }
+        });
+    }
+    trackLength = segments.length * config.segmentLength;
+}
+
+// Populate Competitor AI Cars
+function spawnCars() {
+    for (let i = 0; i < config.totalCars; i++) {
+        cars.push({
+            offset: Math.random() * 1.4 - 0.7, // Position across the road width (-1 to 1)
+            z: (i + 1) * (trackLength / (config.totalCars + 2)),
+            speed: 5000 + Math.random() * 5000,
+            color: 'hsl(' + (Math.random() * 360) + ', 100%, 60%)',
+            width: 400
         });
     }
 }
 
-// 3D 坐标投影到 2D 屏幕
+// 3D Engine Projection Grid
 function project(p, cameraX, cameraY, cameraZ, cameraDepth) {
     let transX = p.x - cameraX;
     let transY = p.y - cameraY;
     let transZ = p.z - cameraZ;
-    
     let scale = cameraDepth / transZ;
     
     return {
@@ -112,33 +219,67 @@ function project(p, cameraX, cameraY, cameraZ, cameraDepth) {
     };
 }
 
-// 绘制单段赛道
+// Rendering System
 function drawSegment(p1, p2, color) {
-    // 渲染草地/背景面
+    // Cyber Horizon / Background fills automatically via canvas setup
     ctx.fillStyle = color.grass;
     ctx.fillRect(0, p2.y, canvas.width, p1.y - p2.y);
     
-    // 渲染路肩 (Rumble)
+    // Side Neon Rumbles
     ctx.fillStyle = color.rumble;
     ctx.beginPath();
-    ctx.moveTo(p1.x - p1.w * 1.1, p1.y); ctx.lineTo(p1.x - p1.w, p1.y);
-    ctx.lineTo(p2.x - p2.w, p2.y); ctx.lineTo(p2.x - p2.w * 1.1, p2.y);
+    ctx.moveTo(p1.x - p1.w * 1.08, p1.y); ctx.lineTo(p1.x - p1.w, p1.y);
+    ctx.lineTo(p2.x - p2.w, p2.y); ctx.lineTo(p2.x - p2.w * 1.08, p2.y);
     ctx.fill();
     
     ctx.beginPath();
-    ctx.moveTo(p1.x + p1.w * 1.1, p1.y); ctx.lineTo(p1.x + p1.w, p1.y);
-    ctx.lineTo(p2.x + p2.w, p2.y); ctx.lineTo(p2.x + p2.w * 1.1, p2.y);
+    ctx.moveTo(p1.x + p1.w * 1.08, p1.y); ctx.lineTo(p1.x + p1.w, p1.y);
+    ctx.lineTo(p2.x + p2.w, p2.y); ctx.lineTo(p2.x + p2.w * 1.08, p2.y);
     ctx.fill();
 
-    // 渲染主路面
+    // Core Roadbed
     ctx.fillStyle = color.road;
     ctx.beginPath();
     ctx.moveTo(p1.x - p1.w, p1.y); ctx.lineTo(p1.x + p1.w, p1.y);
     ctx.lineTo(p2.x + p2.w, p2.y); ctx.lineTo(p2.x - p2.w, p2.y);
     ctx.fill();
+
+    // Center Lane Markings
+    if (color.line !== '#000000') {
+        ctx.fillStyle = color.line;
+        let lw1 = p1.w * 0.04, lw2 = p2.w * 0.04;
+        ctx.beginPath();
+        ctx.moveTo(p1.x - lw1, p1.y); ctx.lineTo(p1.x + lw1, p1.y);
+        ctx.lineTo(p2.x + lw2, p2.y); ctx.lineTo(p2.x - lw2, p2.y);
+        ctx.fill();
+    }
 }
 
-// 渲染现代感赛车 (使用矢量渐变代替老旧像素图)
+// Render Enemy & AI Cars in 3D Space
+function drawEnemyCar(car, segment, cameraDepth) {
+    let carX = car.offset * config.roadWidth;
+    let scale = cameraDepth / (car.z - player.z);
+    
+    let spriteX = Math.round((canvas.width / 2) + (scale * (carX - player.realX) * canvas.width / 2));
+    let spriteY = Math.round((canvas.height / 2) - (scale * (segment.p1.y - config.cameraHeight) * canvas.height / 2));
+    let spriteW = Math.round(scale * car.width * canvas.width / 2);
+    let spriteH = spriteW * 0.6;
+
+    // Draw Enemy Body
+    ctx.fillStyle = car.color;
+    ctx.fillRect(spriteX - spriteW/2, spriteY - spriteH, spriteW, spriteH);
+    
+    // Enemy Wheels & Backlights
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(spriteX - spriteW/2, spriteY - spriteH*0.3, spriteW*0.2, spriteH*0.3);
+    ctx.fillRect(spriteX + spriteW/2 - spriteW*0.2, spriteY - spriteH*0.3, spriteW*0.2, spriteH*0.3);
+    
+    ctx.fillStyle = '#ff3300';
+    ctx.fillRect(spriteX - spriteW/2.5, spriteY - spriteH*0.9, spriteW*0.15, spriteH*0.15);
+    ctx.fillRect(spriteX + spriteW/2.5 - spriteW*0.15, spriteY - spriteH*0.9, spriteW*0.15, spriteH*0.15);
+}
+
+// Render Core Player Hypercar
 function drawPlayer() {
     let x = canvas.width / 2;
     let y = canvas.height - 50;
@@ -146,108 +287,179 @@ function drawPlayer() {
     ctx.save();
     ctx.translate(x, y);
     
-    // 尾灯动态流光效果
-    let gradient = ctx.createLinearGradient(-40, 0, 40, 0);
-    gradient.addColorStop(0, '#ff0055');
-    gradient.addColorStop(0.5, '#ff77aa');
-    gradient.addColorStop(1, '#ff0055');
-    
-    // 车身底盘
-    ctx.fillStyle = '#0f111a';
-    ctx.fillRect(-50, -30, 100, 25);
-    
-    // 能量尾翼
-    ctx.fillStyle = gradient;
-    ctx.fillRect(-60, -45, 120, 10);
-    
-    // 赛车主体喷漆
-    ctx.fillStyle = '#00e5ff';
+    if (keys.left && player.speed > 0) ctx.rotate(-0.04);
+    if (keys.right && player.speed > 0) ctx.rotate(0.04);
+
+    // Engine Underglow
+    ctx.shadowBlur = 25;
+    ctx.shadowColor = '#00e5ff';
+    ctx.fillStyle = 'rgba(0, 229, 255, 0.3)';
+    ctx.fillRect(-50, -10, 100, 15);
+    ctx.shadowBlur = 0;
+
+    // Rear Aero Wing
+    let wingGrad = ctx.createLinearGradient(-60, 0, 60, 0);
+    wingGrad.addColorStop(0, '#ff0055');
+    wingGrad.addColorStop(0.5, '#00e5ff');
+    wingGrad.addColorStop(1, '#ff0055');
+    ctx.fillStyle = wingGrad;
+    ctx.fillRect(-65, -35, 130, 8);
+
+    // Chassis Main Frame
+    ctx.fillStyle = '#0a0b10';
     ctx.beginPath();
-    ctx.moveTo(-35, -10);
-    ctx.lineTo(-25, -35);
-    ctx.lineTo(25, -35);
-    ctx.lineTo(35, -10);
+    ctx.moveTo(-45, 5);
+    ctx.lineTo(-35, -25);
+    ctx.lineTo(35, -25);
+    ctx.lineTo(45, 5);
     ctx.closePath();
     ctx.fill();
-    
-    // 炫酷尾气粒子喷射
+
+    // Laser Accents
+    ctx.fillStyle = '#00e5ff';
+    ctx.fillRect(-30, -20, 5, 20);
+    ctx.fillRect(25, -20, 5, 20);
+
+    // Cockpit Window
+    ctx.fillStyle = '#181a26';
+    ctx.beginPath();
+    ctx.moveTo(-18, -8);
+    ctx.lineTo(-12, -23);
+    ctx.lineTo(12, -23);
+    ctx.lineTo(18, -8);
+    ctx.closePath();
+    ctx.fill();
+
+    // Jet Tail Flame Particles
     if (player.speed > 0) {
-        ctx.fillStyle = 'rgba(0, 229, 255, ' + (player.speed/player.maxSpeed) + ')';
-        ctx.fillRect(-30, -5, 15, 15 * (player.speed/3000));
-        ctx.fillRect(15, -5, 15, 15 * (player.speed/3000));
+        let pRatio = player.speed / player.maxSpeed;
+        ctx.fillStyle = '#ff0055';
+        ctx.fillRect(-28, 5, 12, 10 * pRatio + Math.random() * 6);
+        ctx.fillRect(16, 5, 12, 10 * pRatio + Math.random() * 6);
     }
-    
     ctx.restore();
 }
 
-// 核心游戏循环
-let position = 0;
-let trackLength = 0;
-let playerXOffset = 0;
-
+// System Updates & Collision Physics
 function update(dt) {
-    // 速度与按键处理
+    // Engine Throttle Logic
     if (keys.up) player.speed += player.accel;
     else if (keys.down) player.speed += player.breaking;
     else player.speed += player.decel;
     
     player.speed = Math.max(0, Math.min(player.speed, player.maxSpeed));
     
-    position += player.speed * dt;
-    if (position >= trackLength) position -= trackLength;
+    // Advancement track
+    player.z += player.speed * dt;
+    if (player.z >= trackLength) player.z -= trackLength;
     
-    // 转向控制
-    let currentSegment = segments[Math.floor(position / config.segmentLength) % segments.length];
-    if (keys.left) playerXOffset -= player.turnSpeed * (player.speed / player.maxSpeed);
-    if (keys.right) playerXOffset += player.turnSpeed * (player.speed / player.maxSpeed);
+    let currentIdx = Math.floor(player.z / config.segmentLength) % segments.length;
+    let currentSegment = segments[currentIdx];
     
-    // 离心力影响
-    playerXOffset -= (player.speed/player.maxSpeed) * currentSegment.curve * 0.01;
-    playerXOffset = Math.max(-2, Math.min(2, playerXOffset)); // 限制在赛道边缘外侧一点
+    // Steering Handle
+    if (keys.left) player.x -= player.turnSpeed * (player.speed / player.maxSpeed);
+    if (keys.right) player.x += player.turnSpeed * (player.speed / player.maxSpeed);
     
-    // 更新UI
-    speedDis.innerText = Math.floor((player.speed / player.maxSpeed) * 280);
-    scoreDis.innerText = Math.floor(position / 10);
+    // Centrifugal Drift Pull
+    player.x -= (player.speed / player.maxSpeed) * currentSegment.curve * 0.012;
+    player.x = Math.max(-2, Math.min(2, player.x));
+    player.realX = player.x * config.roadWidth;
+
+    // Track Boundary Friction Penalty
+    if ((player.x < -1 || player.x > 1) && player.speed > 3000) {
+        player.speed += player.breaking * 0.6; 
+    }
+
+    // Process & Track Competitors
+    let rank = config.totalCars + 1;
+    cars.forEach(car => {
+        car.z += car.speed * dt;
+        if (car.z >= trackLength) car.z -= trackLength;
+        
+        // AI Driving Line Adjustments
+        let carSeg = segments[Math.floor(car.z / config.segmentLength) % segments.length];
+        car.offset += Math.sin(car.z / 5000) * 0.01 - carSeg.curve * 0.005;
+        car.offset = Math.max(-0.8, Math.min(0.8, car.offset));
+
+        // Core Collision Matrix Detect (Player <-> Enemy)
+        if (Math.abs(player.z - car.z) < 250) { 
+            let carRealX = car.offset * config.roadWidth;
+            if (Math.abs(player.realX - carRealX) < 350) {
+                // Slam/Crash slowdown response
+                player.speed = car.speed * 0.6;
+                player.z -= 10; 
+            }
+        }
+        
+        // Tabulate Race Positions
+        if (player.z > car.z) rank--;
+    });
+
+    // Update Floating HUD Displays
+    speedVal.innerText = Math.floor((player.speed / player.maxSpeed) * 340);
+    scoreVal.innerText = Math.floor(player.z / 15);
+    rankVal.innerText = rank + " / " + (config.totalCars + 1);
 }
 
+// Master Engine Renderer Loop
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    let baseSegment = segments[Math.floor(position / config.segmentLength) % segments.length];
+    let baseIdx = Math.floor(player.z / config.segmentLength) % segments.length;
+    let baseSegment = segments[baseIdx];
     let cameraDepth = 1 / Math.tan((80 / 2) * Math.PI / 180);
-    let startPosition = position;
     
     let maxy = canvas.height;
-    let x = 0;
-    let dx = 0;
+    let x = 0, dx = 0;
     
-    // 从远到近渲染赛道
+    // 3D Depth Render Scan Line
     for (let n = 0; n < config.drawDistance; n++) {
-        let segment = segments[(Math.floor(position / config.segmentLength) + n) % segments.length];
+        let segment = segments[(baseIdx + n) % segments.length];
         let loop = segment.p1.z < baseSegment.p1.z ? trackLength : 0;
         
-        project(segment.p1, playerXOffset * config.roadWidth - x, config.cameraHeight, position - loop, cameraDepth);
-        project(segment.p2, playerXOffset * config.roadWidth - x - dx, config.cameraHeight, position - loop, cameraDepth);
+        project(segment.p1, player.realX - x, config.cameraHeight + baseSegment.p1.y, player.z - loop, cameraDepth);
+        project(segment.p2, player.realX - x - dx, config.cameraHeight + baseSegment.p1.y, player.z - loop, cameraDepth);
         
         x += dx;
         dx += segment.curve;
         
-        if (segment.p1.z <= position || segment.p2.y >= maxy) continue;
+        if (segment.p1.z <= player.z || segment.p2.y >= maxy) continue;
         
         drawSegment(segment.p1, segment.p2, segment.color);
         maxy = segment.p2.y;
+        
+        // Draw Enemy Cars matching this track frame segment distance
+        cars.forEach(car => {
+            let carIdx = Math.floor(car.z / config.segmentLength) % segments.length;
+            if (carIdx === segment.index && car.z > player.z) {
+                drawEnemyCar(car, segment, cameraDepth);
+            }
+        });
     }
     
     drawPlayer();
 }
 
+// Runner Frame Tick
 function frame() {
-    update(1/config.fps);
+    update(1 / config.fps);
     render();
     requestAnimationFrame(frame);
 }
 
-// 监听键盘
+// iPad Universal Touch Integration API
+function attachTouch(id, action) {
+    const el = document.getElementById(id);
+    el.addEventListener('touchstart', (e) => { e.preventDefault(); keys[action] = true; }, { passive: false });
+    el.addEventListener('touchend', (e) => { e.preventDefault(); keys[action] = false; }, { passive: false });
+    el.addEventListener('touchcancel', (e) => { e.preventDefault(); keys[action] = false; }, { passive: false });
+}
+attachTouch('key-left', 'left');
+attachTouch('key-right', 'right');
+attachTouch('key-up', 'up');
+attachTouch('key-down', 'down');
+
+// Backward Desktop Keyboard Map
 window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowUp' || e.key === 'w') keys.up = true;
     if (e.key === 'ArrowDown' || e.key === 's') keys.down = true;
@@ -261,11 +473,10 @@ window.addEventListener('keyup', (e) => {
     if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
 });
 
-// 初始化游戏
+// Boot Master Configuration
 createTrack();
-trackLength = segments.length * config.segmentLength;
+spawnCars();
 frame();
-
 </script>
 </body>
 </html>
