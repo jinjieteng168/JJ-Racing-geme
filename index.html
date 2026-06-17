@@ -15,7 +15,7 @@
         body, html {
             width: 100%;
             height: 100%;
-            background: #111;
+            background: #f0f4f8;
             overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
@@ -24,73 +24,119 @@
             height: 100%;
             display: block;
         }
-        /* Sleek Modern Dashboard HUD */
+        
+        /* High-Definition Dashboard HUD */
         #hud {
             position: absolute;
-            top: 30px;
-            left: 30px;
-            color: #ffffff;
-            font-size: 22px;
+            top: 25px;
+            left: 25px;
+            color: #111115;
+            font-size: 20px;
             font-weight: 800;
             pointer-events: none;
             z-index: 10;
-            background: rgba(15, 15, 25, 0.75);
-            padding: 18px 30px;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 15px 25px;
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
         .hud-label {
-            font-size: 12px;
-            color: #888;
+            font-size: 11px;
+            color: #666;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 2px;
         }
         .hud-val {
             font-family: monospace;
-            color: #00ffcc;
-            text-shadow: 0 0 10px rgba(0,255,204,0.5);
+            color: #ff3300;
+            font-size: 24px;
         }
+
+        /* Control Mode Switcher Button */
+        #mode-switcher {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            z-index: 10;
+            background: #111;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 14px;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        #mode-switcher:active { transform: scale(0.95); }
         
-        /* Premium iPad Controls Overlay */
+        /* Ergonomic Controller Container */
         .touch-container {
             position: absolute;
             bottom: 40px;
             left: 0;
             width: 100%;
-            padding: 0 60px;
+            padding: 0 50px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
             z-index: 10;
             pointer-events: none;
         }
-        .btn-side { display: flex; gap: 30px; pointer-events: auto; }
+        .btn-side { display: flex; gap: 20px; pointer-events: auto; align-items: center; }
+        
+        /* Traditional Buttons Group */
+        #button-controls { display: flex; gap: 20px; }
         .touch-btn {
-            width: 95px;
-            height: 95px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 90px;
+            height: 90px;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(0, 0, 0, 0.1);
             border-radius: 50%;
-            color: #ffffff;
-            font-size: 30px;
+            color: #111;
+            font-size: 28px;
             display: flex;
             justify-content: center;
             align-items: center;
             backdrop-filter: blur(8px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-            transition: all 0.1s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
-        .touch-btn:active { 
-            transform: scale(0.88);
-            background: rgba(0, 255, 204, 0.2);
-            border-color: #00ffcc;
+        .touch-btn:active { background: #e0e0e0; transform: scale(0.9); }
+        .btn-gas { background: #00ff66; color: #fff; font-weight: bold; font-size: 20px; border: none; }
+        .btn-gas:active { background: #00cc52; }
+        .btn-brk { background: #ff0055; color: #fff; font-weight: bold; font-size: 20px; border: none; }
+        .btn-brk:active { background: #cc0044; }
+
+        /* Virtual Steering Wheel Object */
+        #steering-wheel {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #333 30%, #111 60%, #222 70%, #000 100%);
+            border: 8px dashed #444;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3), inset 0 0 15px #000;
+            display: none; /* Toggled via JS */
+            pointer-events: auto;
+            position: relative;
+            transform: rotate(0deg);
+            transition: transform 0.05s linear;
         }
-        .btn-gas { background: rgba(0, 255, 102, 0.05); border-color: rgba(0, 255, 102, 0.3); color: #00ff66; }
-        .btn-gas:active { background: rgba(0, 255, 102, 0.2); border-color: #00ff66; }
-        .btn-brk { background: rgba(255, 0, 85, 0.05); border-color: rgba(255, 0, 85, 0.3); color: #ff0055; }
-        .btn-brk:active { background: rgba(255, 0, 85, 0.2); border-color: #ff0055; }
+        #steering-wheel::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 0; right: 0;
+            height: 10px; background: #555;
+            transform: translateY(-50%);
+        }
+        #steering-wheel::after {
+            content: '▲';
+            position: absolute;
+            top: 5px; left: 50%;
+            transform: translateX(-50%);
+            color: #ff3300;
+            font-size: 14px;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -98,18 +144,24 @@
 
     <div id="hud">
         <div class="hud-label">Velocity</div>
-        <div style="margin-bottom: 10px;"><span id="speed-val" class="hud-val">0</span> <span style="font-size:14px; color:#fff;">KM/H</span></div>
-        <div class="hud-label">Score</div>
-        <div><span id="score-val" class="hud-val" style="color:#fff; text-shadow:none;">0</span></div>
+        <div style="margin-bottom: 5px;"><span id="speed-val" class="hud-val">0</span> <span style="font-size:14px; color:#333;">KM/H</span></div>
+        <div class="hud-label">Distance Score</div>
+        <div><span id="score-val" class="hud-val" style="color:#111;">0</span></div>
     </div>
+
+    <button id="mode-switcher">SWITCH CONTROL</button>
 
     <div id="gameCanvas"></div>
 
     <div class="touch-container">
         <div class="btn-side">
-            <div class="touch-btn" id="key-left">◀</div>
-            <div class="touch-btn" id="key-right">▶</div>
+            <div id="button-controls">
+                <div class="touch-btn" id="key-left">◀</div>
+                <div class="touch-btn" id="key-right">▶</div>
+            </div>
+            <div id="steering-wheel"></div>
         </div>
+
         <div class="btn-side">
             <div class="touch-btn btn-brk" id="key-down">B</div>
             <div class="touch-btn btn-gas" id="key-up">GAS</div>
@@ -119,303 +171,379 @@
 <script>
 const speedVal = document.getElementById('speed-val');
 const scoreVal = document.getElementById('score-val');
+const modeSwitcher = document.getElementById('mode-switcher');
+const buttonControls = document.getElementById('button-controls');
+const steeringWheel = document.getElementById('steering-wheel');
 
-let scene, camera, renderer, mainLight;
+let scene, camera, renderer, sunLight;
 let playerCar, road, sun;
 let enemies = [];
-let speedLines = [];
 let environmentObjects = [];
 
 let speed = 0;
-const maxSpeed = 2.2;
-const accel = 0.025;
-const brk = -0.06;
+const maxSpeed = 2.5;
+const accel = 0.03;
+const brk = -0.07;
 const decel = -0.008;
 let keys = { left: false, right: false, up: false, down: false };
 let score = 0;
 
+// Control Toggle Mode: 'buttons' or 'wheel'
+let controlMode = 'buttons'; 
+let wheelActive = false;
+let wheelStartAngle = 0;
+let wheelCurrentRotation = 0;
+
 function init3D() {
     scene = new THREE.Scene();
     
-    // High-quality atmospheric sky gradient environment
-    scene.background = new THREE.Color('#0a1128'); 
-    scene.fog = new THREE.FogExp2('#0a1128', 0.008);
+    // Bright crisp daytime sky and atmosphere fog
+    scene.background = new THREE.Color('#a0cfff'); 
+    scene.fog = new THREE.FogExp2('#a0cfff', 0.005);
 
     camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 2.3, 6.5); // Lower, sportier chasing view angle
-    camera.lookAt(0, 0.8, -5);
+    camera.position.set(0, 2.2, 6.2); // Low realistic dynamic trailing angle
+    camera.lookAt(0, 0.9, -5);
 
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Dynamic Retina scaling
-    renderer.toneMapping = THREE.ACESFilmicToneMapping; // Cinematic lighting grading
-    renderer.toneMappingExposure = 1.0;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // High definition pixel mapping
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; // Modern HDR tone rendering
+    renderer.toneMappingExposure = 1.2;
     document.getElementById('gameCanvas').appendChild(renderer.domElement);
 
-    // Realistic Lighting System
-    const ambientLight = new THREE.AmbientLight('#ffffff', 0.4);
+    // Day Global Lighting
+    const ambientLight = new THREE.AmbientLight('#ffffff', 0.65);
     scene.add(ambientLight);
 
-    mainLight = new THREE.DirectionalLight('#ffdfb0', 1.8); // Golden hour cinematic light
-    mainLight.position.set(30, 45, 40);
-    scene.add(mainLight);
+    sunLight = new THREE.DirectionalLight('#ffffff', 1.5);
+    sunLight.position.set(40, 100, 20);
+    scene.add(sunLight);
 
-    // Cinematic Sun Centerpiece
-    const sunGeo = new THREE.SphereGeometry(6, 32, 32);
-    const sunMat = new THREE.MeshBasicMaterial({ color: '#ffb74d' });
+    // Glowing Day Sun Sphere
+    const sunGeo = new THREE.SphereGeometry(7, 32, 32);
+    const sunMat = new THREE.MeshBasicMaterial({ color: '#fff9c4' });
     sun = new THREE.Mesh(sunGeo, sunMat);
-    sun.position.set(-60, 30, -300);
+    sun.position.set(80, 70, -400);
     scene.add(sun);
 
-    setupRoad();
-    setupStreamlinedCar();
-    setupSpeedLines();
-    setupTraffic();
-    setupLandscape();
+    setupCityRoad();
+    setupHDPlayerCar();
+    setupHDTraffic();
+    setupCitySkyline();
 
+    setupControlInteractions();
     window.addEventListener('resize', onWindowResize, false);
 }
 
-function setupRoad() {
-    // Detailed textured asphalt road geometry
-    const roadGeo = new THREE.PlaneGeometry(16, 2000);
-    const roadMat = new THREE.MeshStandardMaterial({ 
-        color: '#1a1a1f', 
-        roughness: 0.6, 
-        metalness: 0.2 
-    });
+function setupCityRoad() {
+    const roadGeo = new THREE.PlaneGeometry(18, 2000);
+    const roadMat = new THREE.MeshStandardMaterial({ color: '#2c2d35', roughness: 0.5, metalness: 0.1 });
     road = new THREE.Mesh(roadGeo, roadMat);
     road.rotation.x = -Math.PI / 2;
     road.position.set(0, 0, -900);
     scene.add(road);
 
-    // High-visibility crisp dual lane markers
-    for(let i = 0; i > -2000; i -= 20) {
-        const lineGeo = new THREE.PlaneGeometry(0.25, 6);
-        const lineMat = new THREE.MeshBasicMaterial({ color: '#ffcc00', side: THREE.DoubleSide });
+    // Double Continuous White highway markings
+    for(let i = 0; i > -2000; i -= 25) {
+        const lineGeo = new THREE.PlaneGeometry(0.3, 8);
+        const lineMat = new THREE.MeshBasicMaterial({ color: '#ffffff', side: THREE.DoubleSide });
         
-        const leftLine = new THREE.Mesh(lineGeo, lineMat);
-        leftLine.rotation.x = -Math.PI / 2;
-        leftLine.position.set(-2.5, 0.02, i);
+        const lineL = new THREE.Mesh(lineGeo, lineMat);
+        lineL.rotation.x = -Math.PI / 2;
+        lineL.position.set(-3, 0.02, i);
         
-        const rightLine = leftLine.clone();
-        rightLine.position.x = 2.5;
+        const lineR = lineL.clone();
+        lineR.position.x = 3;
         
-        scene.add(leftLine, rightLine);
-        environmentObjects.push(leftLine, rightLine);
+        scene.add(lineL, lineR);
+        environmentObjects.push(lineL, lineR);
     }
 }
 
-// Procedural Streamlined Hypercar Assembly (No more blocks!)
-function setupStreamlinedCar() {
+// Streamlined HD Player Supercar
+function setupHDPlayerCar() {
     playerCar = new THREE.Group();
 
-    // Metallic premium car paint shader setup
-    const paintMat = new THREE.MeshStandardMaterial({ 
-        color: '#d50000', 
-        metalness: 0.8, 
-        roughness: 0.15,
-        clearcoat: 1.0,
-        clearcoatRoughness: 0.1
+    // High Gloss Deep Metallic Clearcoat Paint Material
+    const bodyPaint = new THREE.MeshStandardMaterial({ 
+        color: '#ff1100', metalness: 0.8, roughness: 0.1, clearcoat: 1.0, clearcoatRoughness: 0.05 
     });
-    const carbonMat = new THREE.MeshStandardMaterial({ color: '#111113', roughness: 0.5 });
+    const glassMat = new THREE.MeshStandardMaterial({ color: '#090a10', roughness: 0.05, metalness: 0.9 });
+    const trimMat = new THREE.MeshStandardMaterial({ color: '#151518', roughness: 0.6 });
 
-    // 1. Sleek Lower Nose/Front Splitter
-    const noseGeo = new THREE.CylinderGeometry(0.6, 0.9, 1.4, 4);
-    noseGeo.rotateX(Math.PI / 2);
-    noseGeo.scale(1.8, 0.3, 1);
-    const nose = new THREE.Mesh(noseGeo, paintMat);
-    nose.position.set(0, 0.25, -1.5);
-    playerCar.add(nose);
+    // Streamlined Curvature Hood Nose
+    const frontGeo = new THREE.CylinderGeometry(0.5, 0.9, 1.5, 16);
+    frontGeo.rotateX(Math.PI / 2);
+    frontGeo.scale(2.0, 0.26, 1);
+    const frontBody = new THREE.Mesh(frontGeo, bodyPaint);
+    frontBody.position.set(0, 0.22, -1.6);
+    playerCar.add(frontBody);
 
-    // 2. Aerodynamic Main Fuselage Body
-    const mainBodyGeo = new THREE.CylinderGeometry(0.8, 0.95, 2.6, 8);
-    mainBodyGeo.rotateX(Math.PI / 2);
-    mainBodyGeo.scale(1.9, 0.45, 1);
-    const mainBody = new THREE.Mesh(mainBodyGeo, paintMat);
-    mainBody.position.set(0, 0.38, 0.2);
-    playerCar.add(mainBody);
+    // Main Mid-Engine Chassis Cockpit shell
+    const cabinShellGeo = new THREE.CylinderGeometry(0.85, 1.0, 2.8, 16);
+    cabinShellGeo.rotateX(Math.PI / 2);
+    cabinShellGeo.scale(2.1, 0.46, 1);
+    const mainChassis = new THREE.Mesh(cabinShellGeo, bodyPaint);
+    mainChassis.position.set(0, 0.35, 0.3);
+    playerCar.add(mainChassis);
 
-    // 3. Curved Fighter-Jet Style Cockpit Window
-    const cockpitGeo = new THREE.SphereGeometry(0.65, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
-    cockpitGeo.scale(1.2, 0.7, 2.2);
-    const cockpit = new THREE.Mesh(cockpitGeo, carbonMat);
-    cockpit.position.set(0, 0.5, -0.1);
-    playerCar.add(cockpit);
+    // Highly Curved Panoramic Windshield
+    const windowGeo = new THREE.SphereGeometry(0.7, 32, 20, 0, Math.PI * 2, 0, Math.PI / 2);
+    windowGeo.scale(1.25, 0.68, 2.0);
+    const windshield = new THREE.Mesh(windowGeo, glassMat);
+    windshield.position.set(0, 0.48, -0.1);
+    playerCar.add(windshield);
 
-    // 4. GT3 Racing Wing Spoiler
-    const spoilerWing = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.04, 0.5), carbonMat);
-    spoilerWing.position.set(0, 0.85, 1.7);
-    playerCar.add(spoilerWing);
+    // Downforce Carbon Fiber GT Spoiler Rear Wing
+    const wingBlade = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.03, 0.55), trimMat);
+    wingBlade.position.set(0, 0.88, 1.8);
+    playerCar.add(wingBlade);
 
-    const mountL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.4, 0.1), carbonMat);
-    mountL.position.set(-0.9, 0.65, 1.6);
-    mountL.rotation.x = 0.2;
-    playerCar.add(mountL);
-    const mountR = mountL.clone();
-    mountR.position.x = 0.9;
-    playerCar.add(mountR);
+    const wingMountL = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.42, 0.1), trimMat);
+    wingMountL.position.set(-0.95, 0.68, 1.7);
+    wingMountL.rotation.x = 0.25;
+    playerCar.add(wingMountL);
+    const wingMountR = wingMountL.clone();
+    wingMountR.position.x = 0.95;
+    playerCar.add(wingMountR);
 
-    // 5. LED Xenon Laser Headlights
-    const ledMat = new THREE.MeshBasicMaterial({ color: '#00ffcc' });
-    const headlightL = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.4, 4), ledMat);
-    headlightL.rotation.x = -Math.PI / 2;
-    headlightL.position.set(-0.75, 0.32, -2.1);
-    playerCar.add(headlightL);
-    const headlightR = headlightL.clone();
-    headlightR.position.x = 0.75;
-    playerCar.add(headlightR);
+    // Hypercar Xenon LED DRL Headlights Strip
+    const ledMat = new THREE.MeshBasicMaterial({ color: '#00e5ff' });
+    const lampL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.06, 0.1), ledMat);
+    lampL.position.set(-0.8, 0.28, -2.25);
+    lampL.rotation.y = 0.2;
+    playerCar.add(lampL);
+    const lampR = lampL.clone();
+    lampR.position.x = 0.8;
+    lampR.rotation.y = -0.2;
+    playerCar.add(lampR);
 
-    // 6. Premium Chrome Finished Alloy Wheels
-    const tireMat = new THREE.MeshStandardMaterial({ color: '#0c0c0e', roughness: 0.85 });
-    const rimMat = new THREE.MeshStandardMaterial({ color: '#cccccc', metalness: 0.9, roughness: 0.1 });
-    const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.45, 32);
-    const rimGeo = new THREE.CylinderGeometry(0.26, 0.26, 0.47, 16);
+    // Heavy Alloy Sports Rims and Tires
+    const tireMat = new THREE.MeshStandardMaterial({ color: '#131316', roughness: 0.9 });
+    const chromeRim = new THREE.MeshStandardMaterial({ color: '#e0e0e0', metalness: 0.95, roughness: 0.05 });
+    const tireGeo = new THREE.CylinderGeometry(0.42, 0.42, 0.45, 32);
+    const rimGeo = new THREE.CylinderGeometry(0.28, 0.28, 0.47, 16);
 
-    const wheelHubs = [
-        [-1.02, 0.4, -1.0], [1.02, 0.4, -1.0],
-        [-1.02, 0.4, 1.1],  [1.02, 0.4, 1.1]
-    ];
-
-    wheelHubs.forEach(pos => {
-        const tire = new THREE.Mesh(wheelGeo, tireMat);
-        tire.rotation.z = Math.PI / 2;
-        const rim = new THREE.Mesh(rimGeo, rimMat);
-        rim.rotation.z = Math.PI / 2;
+    const axels = [[-1.08, 0.42, -1.1], [1.08, 0.42, -1.1], [-1.08, 0.42, 1.2], [1.08, 0.42, 1.2]];
+    axels.forEach(pos => {
+        const tireMesh = new THREE.Mesh(tireGeo, tireMat);
+        tireMesh.rotation.z = Math.PI / 2;
+        const rimMesh = new THREE.Mesh(rimGeo, chromeRim);
+        rimMesh.rotation.z = Math.PI / 2;
         
-        const wheelAssembly = new THREE.Group();
-        wheelAssembly.add(tire, rim);
-        wheelAssembly.position.set(pos[0], pos[1], pos[2]);
-        playerCar.add(wheelAssembly);
+        const wheelUnit = new THREE.Group();
+        wheelUnit.add(tireMesh, rimMesh);
+        wheelUnit.position.set(pos[0], pos[1], pos[2]);
+        playerCar.add(wheelUnit);
     });
 
     scene.add(playerCar);
 }
 
-// Dynamic speed lines to eliminate the "fake static grid" feeling
-function setupSpeedLines() {
-    const lineMat = new THREE.LineBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.3 });
-    for(let i=0; i<30; i++) {
-        const points = [new THREE.Vector3(0,0,0), new THREE.Vector3(0,0, -10 - Math.random()*20)];
-        const geo = new THREE.BufferGeometry().setFromPoints(points);
-        const line = new THREE.Line(geo, lineMat);
-        line.position.set(Math.random()*40 - 20, Math.random()*8, -Math.random()*400);
-        scene.add(line);
-        speedLines.push(line);
-    }
-}
-
-function setupTraffic() {
-    const carColors = ['#ffbc00', '#00b0ff', '#aa00ff', '#111111'];
+// Spawn High-Definition Realistic Traffic Cars (Other Cars)
+function setupHDTraffic() {
+    const palette = ['#0066ff', '#ffaa00', '#00ffaa', '#ffffff', '#555555'];
     
-    for (let i = 0; i < 5; i++) {
-        const enemy = new THREE.Group();
-        const paint = new THREE.MeshStandardMaterial({ color: carColors[i % carColors.length], metalness: 0.7, roughness: 0.2 });
-        
-        // Streamlined body curve for traffic cars
-        const bGeo = new THREE.CylinderGeometry(0.75, 0.9, 3.4, 6);
-        bGeo.rotateX(Math.PI/2);
-        bGeo.scale(1.8, 0.4, 1);
-        const body = new THREE.Mesh(bGeo, paint);
-        body.position.y = 0.35;
-        enemy.add(body);
+    for (let i = 0; i < 6; i++) {
+        const trafficCar = new THREE.Group();
+        const carColor = palette[i % palette.length];
+        const paintMat = new THREE.MeshStandardMaterial({ color: carColor, metalness: 0.6, roughness: 0.2 });
+        const windowMat = new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.1 });
 
-        let laneX = (i % 2 === 0) ? -4 : 4;
-        enemy.position.set(laneX, 0, -80 - (i * 70));
-        scene.add(enemy);
+        // Streamlined Curved Body Core
+        const mainGeo = new THREE.CylinderGeometry(0.8, 0.95, 3.5, 12);
+        mainGeo.rotateX(Math.PI/2);
+        mainGeo.scale(1.9, 0.42, 1);
+        const bMesh = new THREE.Mesh(mainGeo, paintMat);
+        bMesh.position.y = 0.38;
+        trafficCar.add(bMesh);
+
+        // Glass cabin block
+        const cabGeo = new THREE.BoxGeometry(1.3, 0.45, 1.8);
+        const cabMesh = new THREE.Mesh(cabGeo, windowMat);
+        cabMesh.position.set(0, 0.7, 0);
+        trafficCar.add(cabMesh);
+
+        let activeLane = (i % 2 === 0) ? -4.5 : 4.5;
+        trafficCar.position.set(activeLane, 0, -100 - (i * 75));
+        scene.add(trafficCar);
         
         enemies.push({
-            mesh: enemy,
-            speed: 0.4 + Math.random() * 0.3
+            mesh: trafficCar,
+            speed: 0.5 + Math.random() * 0.4
         });
     }
 }
 
-function setupLandscape() {
-    // Smooth spherical organic pine trees
-    const leafMat = new THREE.MeshStandardMaterial({ color: '#1b4d3e', roughness: 0.7 });
-    const trunkMat = new THREE.MeshStandardMaterial({ color: '#3e2723' });
+// Generate Skyscrapers, Modern Buildings and Scenery (No More Empty Space)
+function setupCitySkyline() {
+    // High Definition Architecture Textures Generated via Color Shader Mat
+    const bldColors = ['#cfd8dc', '#b0bec5', '#90a4ae', '#78909c', '#eceff1'];
+    
+    for (let i = 0; i > -2000; i -= 45) {
+        // Left Side Skyscrapers
+        const leftBldHeight = 25 + Math.random() * 35;
+        const leftBldWidth = 10 + Math.random() * 8;
+        const leftBldMat = new THREE.MeshStandardMaterial({ 
+            color: bldColors[Math.floor(Math.random() * bldColors.length)], roughness: 0.4, metalness: 0.3 
+        });
+        const bldL = new THREE.Mesh(new THREE.BoxGeometry(leftBldWidth, leftBldHeight, 15), leftBldMat);
+        bldL.position.set(-18 - leftBldWidth/2, leftBldHeight/2, i);
+        scene.add(bldL);
+        environmentObjects.push(bldL);
 
-    for (let i = 0; i > -1500; i -= 35) {
-        const leftTree = new THREE.Group();
-        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.35, 3), trunkMat);
-        trunk.position.y = 1.5;
-        const leaves = new THREE.Mesh(new THREE.SphereGeometry(1.6, 16, 16), leafMat);
-        leaves.position.y = 4;
-        leftTree.add(trunk, leaves);
+        // Right Side Skyscrapers
+        const rightBldHeight = 25 + Math.random() * 35;
+        const rightBldWidth = 10 + Math.random() * 8;
+        const rightBldMat = new THREE.MeshStandardMaterial({ 
+            color: bldColors[Math.floor(Math.random() * bldColors.length)], roughness: 0.4, metalness: 0.3 
+        });
+        const bldR = new THREE.Mesh(new THREE.BoxGeometry(rightBldWidth, rightBldHeight, 15), rightBldMat);
+        bldR.position.set(18 + rightBldWidth/2, rightBldHeight/2, i + 15);
+        scene.add(bldR);
+        environmentObjects.push(bldR);
+
+        // Interspersed Modern Roadside Trees
+        const leafMat = new THREE.MeshStandardMaterial({ color: '#388e3c', roughness: 0.7 });
+        const treeGeo = new THREE.SphereGeometry(2, 16, 16);
         
-        leftTree.position.set(-14 - Math.random()*4, 0, i);
-        const rightTree = leftTree.clone();
-        rightTree.position.x = 14 + Math.random()*4;
+        const treeL = new THREE.Mesh(treeGeo, leafMat);
+        treeL.position.set(-11, 2, i + 20);
+        const treeR = treeL.clone();
+        treeR.position.x = 11;
         
-        scene.add(leftTree, rightTree);
-        environmentObjects.push(leftTree, rightTree);
+        scene.add(treeL, treeR);
+        environmentObjects.push(treeL, treeR);
     }
 }
 
-function updateGame() {
-    // Handling Velocity Controls Physics Engine
+// Universal Input API Configurations
+function setupControlInteractions() {
+    // Switch Controller Event Listener
+    modeSwitcher.addEventListener('click', () => {
+        if (controlMode === 'buttons') {
+            controlMode = 'wheel';
+            buttonControls.style.display = 'none';
+            steeringWheel.style.display = 'block';
+            keys.left = false; keys.right = false;
+        } else {
+            controlMode = 'buttons';
+            buttonControls.style.display = 'flex';
+            steeringWheel.style.display = 'none';
+            wheelCurrentRotation = 0;
+            steeringWheel.style.transform = `rotate(0deg)`;
+        }
+    });
+
+    // Touch Steering Wheel Control Calculations
+    function getTouchAngle(e) {
+        const rect = steeringWheel.getBoundingClientRect();
+        const centerW = rect.left + rect.width / 2;
+        const centerH = rect.top + rect.height / 2;
+        const touch = e.touches[0];
+        return Math.atan2(touch.clientY - centerH, touch.clientX - centerW);
+    }
+
+    steeringWheel.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        wheelActive = true;
+        wheelStartAngle = getTouchAngle(e) - wheelCurrentRotation;
+    }, { passive: false });
+
+    steeringWheel.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (!wheelActive) return;
+        let deltaAngle = getTouchAngle(e) - wheelStartAngle;
+        
+        // Clamp wheel rotation between -130 to +130 degrees max bounds
+        wheelCurrentRotation = Math.max(-2.2, Math.min(2.2, deltaAngle));
+        steeringWheel.style.transform = `rotate(${wheelCurrentRotation * 57.29}deg)`;
+    }, { passive: false });
+
+    const stopWheel = () => { wheelActive = false; };
+    steeringWheel.addEventListener('touchend', stopWheel);
+    steeringWheel.addEventListener('touchcancel', stopWheel);
+
+    // Bind Standard Gas and Brake Pedals
+    function bindPedal(id, prop) {
+        const el = document.getElementById(id);
+        el.addEventListener('touchstart', (e) => { e.preventDefault(); keys[prop] = true; }, { passive: false });
+        el.addEventListener('touchend', (e) => { e.preventDefault(); keys[prop] = false; }, { passive: false });
+        el.addEventListener('touchcancel', (e) => { e.preventDefault(); keys[prop] = false; }, { passive: false });
+    }
+    bindPedal('key-left', 'left');
+    bindPedal('key-right', 'right');
+    bindPedal('key-up', 'up');
+    bindPedal('key-down', 'down');
+}
+
+function updatePhysics() {
+    // Throttle Accel Calculation Matrix
     if (keys.up) speed += accel;
     else if (keys.down) speed += brk;
     else speed += decel;
 
     speed = Math.max(0, Math.min(speed, maxSpeed));
 
-    // Responsive Organic Cornering Steering Matrix
-    if (keys.left && playerCar.position.x > -6.5) {
-        playerCar.position.x -= 0.18 * (speed / maxSpeed);
-        playerCar.rotation.y = 0.18; 
-        playerCar.rotation.z = 0.08; // Roll body into corner
-    } else if (keys.right && playerCar.position.x < 6.5) {
-        playerCar.position.x += 0.18 * (speed / maxSpeed);
-        playerCar.rotation.y = -0.18;
-        playerCar.rotation.z = -0.08;
+    // Calculate turning either from Button Mode or Steering Wheel Angle Mode
+    let turnFactor = 0;
+    if (controlMode === 'buttons') {
+        if (keys.left) turnFactor = -1;
+        if (keys.right) turnFactor = 1;
     } else {
-        playerCar.rotation.y *= 0.85; // Seamless center alignment snaps
-        playerCar.rotation.z *= 0.85;
+        // Wheel returns smoothly to center when not actively grabbed
+        if (!wheelActive) {
+            wheelCurrentRotation *= 0.85;
+            steeringWheel.style.transform = `rotate(${wheelCurrentRotation * 57.29}deg)`;
+        }
+        turnFactor = wheelCurrentRotation / 2.2; // Convert radians angle mapping to -1 / 1 factor
     }
 
+    // Apply Steering Vector Position Displacement
+    if (Math.abs(turnFactor) > 0.02 && playerCar.position.x >= -7.5 && playerCar.position.x <= 7.5) {
+        playerCar.position.x += 0.22 * turnFactor * (speed / maxSpeed);
+        playerCar.rotation.y = -0.2 * turnFactor; 
+        playerCar.rotation.z = -0.1 * turnFactor; // Dynamic roll aerodynamics
+    } else {
+        playerCar.rotation.y *= 0.8;
+        playerCar.rotation.z *= 0.8;
+    }
+    playerCar.position.x = Math.max(-7.5, Math.min(7.5, playerCar.position.x));
+
+    // Handle Infinite Environment Motion Matrix Loops
     if (speed > 0) {
-        score += Math.floor(speed * 12);
+        score += Math.floor(speed * 15);
         
-        // Dynamic speed lines translation updates
-        speedLines.forEach(line => {
-            line.position.z += speed * 45;
-            if (line.position.z > 10) line.position.z = -400 - Math.random()*200;
-        });
-
-        // Endless scenery reposition engine loop
         environmentObjects.forEach(obj => {
-            obj.position.z += speed * 25;
-            if (obj.position.z > 20) obj.position.z -= 1400;
+            obj.position.z += speed * 30;
+            if (obj.position.z > 25) obj.position.z -= 1900; // Reset back to infinite depth horizon
         });
 
-        // Smart Traffic management
+        // Traffic Collision Logic
         enemies.forEach(enemy => {
-            enemy.mesh.position.z += (speed * 25) - (enemy.speed * 22);
+            enemy.mesh.position.z += (speed * 30) - (enemy.speed * 26);
             
-            // Ultra-precise vehicle bounding box hit intersection testing
-            if (Math.abs(playerCar.position.z - enemy.mesh.position.z) < 3.4 &&
-                Math.abs(playerCar.position.x - enemy.mesh.position.x) < 1.7) {
-                speed = 0.15; // Realistic crash feedback slowdown
-                enemy.mesh.position.z -= 8;
+            if (Math.abs(playerCar.position.z - enemy.mesh.position.z) < 3.6 &&
+                Math.abs(playerCar.position.x - enemy.mesh.position.x) < 1.8) {
+                speed = 0.15; // Hit impact crash penalty
+                enemy.mesh.position.z -= 10;
             }
 
-            if (enemy.mesh.position.z > 20) {
-                enemy.mesh.position.z = -400 - Math.random() * 150;
-                enemy.mesh.position.x = Math.random() > 0.5 ? -4 : 4;
+            if (enemy.mesh.position.z > 25) {
+                enemy.mesh.position.z = -450 - Math.random() * 200;
+                enemy.mesh.position.x = Math.random() > 0.5 ? -4.5 : 4.5;
             }
         });
     }
 
-    // Bind values smoothly into HUD dashboard
-    speedVal.innerText = Math.floor((speed / maxSpeed) * 325);
+    speedVal.innerText = Math.floor((speed / maxSpeed) * 335);
     scoreVal.innerText = score;
 }
 
 function animate() {
     requestAnimationFrame(animate);
-    updateGame();
+    updatePhysics();
     renderer.render(scene, camera);
 }
 
@@ -425,17 +553,7 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function bindTouch(id, prop) {
-    const el = document.getElementById(id);
-    el.addEventListener('touchstart', (e) => { e.preventDefault(); keys[prop] = true; }, { passive: false });
-    el.addEventListener('touchend', (e) => { e.preventDefault(); keys[prop] = false; }, { passive: false });
-    el.addEventListener('touchcancel', (e) => { e.preventDefault(); keys[prop] = false; }, { passive: false });
-}
-bindTouch('key-left', 'left');
-bindTouch('key-right', 'right');
-bindTouch('key-up', 'up');
-bindTouch('key-down', 'down');
-
+// Backward Compatibility Desktop Keyboard
 window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowUp' || e.key === 'w') keys.up = true;
     if (e.key === 'ArrowDown' || e.key === 's') keys.down = true;
